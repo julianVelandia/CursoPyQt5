@@ -1,4 +1,6 @@
 import sqlite3
+import hashlib
+
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -10,6 +12,10 @@ class MainApp(QMainWindow):
     def __init__(self, parent=None, *args):
         super(MainApp,self).__init__(parent = parent)
         
+        self.conn = sqlite3.connect('DB_3.db')
+        self.c = self.conn.cursor()
+
+        #self.hash = hashlib.sha256()
         
         self.setMinimumSize(500,300)    #tamaño mínimo
         self.setMaximumSize(1000,3000)  #tamaño máximo
@@ -19,6 +25,9 @@ class MainApp(QMainWindow):
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
 
+
+        self.label = QLabel(self.centralWidget)
+        self.label.setGeometry(220,130,150,30)
 
         '''
         Campo de texto y  de contraseña
@@ -45,11 +54,15 @@ class MainApp(QMainWindow):
         self.login_button.clicked.connect(self.login)
 
     def login(self):
-        user_name = self.user_input.text()
-        password = self.user_password.text()
-        if user_name != '' and password != '' :
+        username = self.user_input.text()
+        password = hashlib.sha512(self.user_password.text().encode())
+        if username != '' and password != '' :
             print('correcto')
-
+            self.c.execute('INSERT INTO usuarios (username,password) VALUES ("{}","{}")'.format(username,password.hexdigest()))#mirar como evitar ataques de SQL injection
+            self.conn.commit()
+            self.label.setText('usuario registrado')
+        else:
+            self.label.setText('Ingresa un valor')
 
 
 
